@@ -1,0 +1,90 @@
+/* Custom tweaks not covered by basic Tailwind classes */
+
+/* =========================================
+   THEME COLOR SYSTEM (CSS Custom Properties)
+   Change these vars to retheme the entire app
+   ========================================= */
+:root {
+    --p-50:  #eff6ff;  /* blue-50  */
+    --p-100: #dbeafe;  /* blue-100 */
+    --p-500: #3b82f6;  /* blue-500 */
+    --p-600: #2563eb;  /* blue-600 (main) */
+    --p-700: #1d4ed8;  /* blue-700 */
+}
+
+/* Override Tailwind blue-* classes with CSS vars so all blue classes theme together */
+.bg-blue-50   { background-color: var(--p-50)  !important; }
+.bg-blue-100  { background-color: var(--p-100) !important; }
+.bg-blue-500  { background-color: var(--p-500) !important; }
+.bg-blue-600  { background-color: var(--p-600) !important; }
+.bg-blue-700  { background-color: var(--p-700) !important; }
+.text-blue-500 { color: var(--p-500) !important; }
+.text-blue-600 { color: var(--p-600) !important; }
+.text-blue-100 { color: var(--p-100) !important; }
+.border-blue-500 { border-color: var(--p-500) !important; }
+.border-blue-600 { border-color: var(--p-600) !important; }
+.from-blue-500  { --tw-gradient-from: var(--p-500) !important; }
+.from-blue-600  { --tw-gradient-from: var(--p-600) !important; }
+.to-blue-400    { --tw-gradient-to: var(--p-500) !important; }
+.to-blue-500    { --tw-gradient-to: var(--p-500) !important; }
+.ring-blue-500:focus, .focus\:ring-blue-500:focus { --tw-ring-color: var(--p-500) !important; }
+.focus\:border-blue-500:focus { border-color: var(--p-500) !important; }
+.peer-checked\:bg-blue-600 { --tw-peer-checked-bg: var(--p-600); }
+.shadow-blue-600\/20 { --tw-shadow-color: color-mix(in srgb, var(--p-600) 20%, transparent) !important; }
+.shadow-blue-600\/30 { --tw-shadow-color: color-mix(in srgb, var(--p-600) 30%, transparent) !important; }
+
+html, body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Safe area padding for newer iPhones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Active Navigation Item styling */
+.nav-btn.active {
+    color: var(--p-600);
+}
+.nav-btn.active i {
+    font-weight: bold;
+}
+.nav-btn i {
+    font-family: "Phosphor-Regular", sans-serif;
+}
+.nav-btn.active i.ph {
+    font-weight: 700;
+}
