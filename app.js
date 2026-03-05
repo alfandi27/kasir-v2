@@ -11,7 +11,8 @@ const DB = {
         CATEGORIES: 'pos_categories',
         TRANSACTIONS: 'pos_transactions',
         SETTINGS: 'pos_settings',
-        COUNTERS: 'pos_counters'
+        COUNTERS: 'pos_counters',
+        PROMOS: 'pos_promos'
     },
 
     // Initialize initial default data if none exists
@@ -27,6 +28,7 @@ const DB = {
         }
         if (!localStorage.getItem(this.KEYS.TRANSACTIONS)) this.save(this.KEYS.TRANSACTIONS, []);
         if (!localStorage.getItem(this.KEYS.COUNTERS)) this.save(this.KEYS.COUNTERS, { receiptNo: 1 });
+        if (!localStorage.getItem(this.KEYS.PROMOS)) this.save(this.KEYS.PROMOS, []);
         // Don't auto-init settings, we use it to check first run
     },
 
@@ -64,12 +66,17 @@ const State = {
 // ============================================================
 const THEMES = {
     blue: { name: 'Biru', 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
-    green: { name: 'Hijau', 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d' },
+    indigo: { name: 'Indigo', 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
     purple: { name: 'Ungu', 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' },
+    pink: { name: 'Pink', 50: '#fdf2f8', 100: '#fce7f3', 500: '#ec4899', 600: '#db2777', 700: '#be185d' },
+    rose: { name: 'Rose', 50: '#fff1f2', 100: '#ffe4e6', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c' },
     red: { name: 'Merah', 50: '#fef2f2', 100: '#fee2e2', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c' },
     orange: { name: 'Orange', 50: '#fff7ed', 100: '#ffedd5', 500: '#f97316', 600: '#ea580c', 700: '#c2410c' },
+    amber: { name: 'Amber', 50: '#fffbeb', 100: '#fef3c7', 500: '#f59e0b', 600: '#d97706', 700: '#b45309' },
+    green: { name: 'Hijau', 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d' },
     teal: { name: 'Teal', 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e' },
-    pink: { name: 'Pink', 50: '#fdf2f8', 100: '#fce7f3', 500: '#ec4899', 600: '#db2777', 700: '#be185d' },
+    cyan: { name: 'Cyan', 50: '#ecfeff', 100: '#cffafe', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490' },
+    lime: { name: 'Lime', 50: '#f7fee7', 100: '#ecfccb', 500: '#84cc16', 600: '#65a30d', 700: '#4d7c0f' },
 };
 
 function applyTheme(colorKey) {
@@ -343,10 +350,18 @@ const productsController = {
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual *</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
                             <input type="number" id="prodPrice" required min="0" class="w-full pl-10 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Modal (Opsional)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                            <input type="number" id="prodCostPrice" min="0" placeholder="0" class="w-full pl-10 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
                         </div>
                     </div>
                     
@@ -403,10 +418,18 @@ const productsController = {
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual *</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
                             <input type="number" id="prodPrice" value="${p.price}" required min="0" class="w-full pl-10 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Modal (Opsional)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                            <input type="number" id="prodCostPrice" value="${p.costPrice || ''}" min="0" placeholder="0" class="w-full pl-10 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
                         </div>
                     </div>
                     
@@ -442,6 +465,8 @@ const productsController = {
         const id = document.getElementById('prodId').value;
         const name = document.getElementById('prodName').value.trim();
         const price = parseFloat(document.getElementById('prodPrice').value);
+        const costPriceStr = document.getElementById('prodCostPrice').value.trim();
+        const costPrice = costPriceStr === '' ? 0 : parseFloat(costPriceStr);
         const categoryId = document.getElementById('prodCategory').value;
         const stockStr = document.getElementById('prodStock').value.trim();
         const stock = stockStr === '' ? '' : parseInt(stockStr);
@@ -454,17 +479,14 @@ const productsController = {
             // Edit
             const index = products.findIndex(p => p.id === id);
             if (index !== -1) {
-                products[index] = { ...products[index], name, price, categoryId, stock, updatedAt: new Date().toISOString() };
+                products[index] = { ...products[index], name, price, costPrice, categoryId, stock, updatedAt: new Date().toISOString() };
             }
         } else {
             // New
             products.push({
                 id: app.generateId(),
-                name,
-                price,
-                categoryId,
-                stock,
-                image: '', // Can add image upload later if needed
+                name, price, costPrice, categoryId, stock,
+                image: '',
                 createdAt: new Date().toISOString()
             });
         }
@@ -766,9 +788,250 @@ const categoryController = {
 };
 
 
+// Promo / Discount Template Controller
+const promoController = {
+
+    openPromoManager() {
+        const promos = DB.get(DB.KEYS.PROMOS) || [];
+
+        let listHtml = '';
+        if (promos.length === 0) {
+            listHtml = `<p class="py-6 text-sm text-gray-400 text-center">Belum ada template promo.</p>`;
+        } else {
+            promos.forEach(promo => {
+                const badge = promo.type === 'percentage'
+                    ? `<span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">${promo.value}%</span>`
+                    : `<span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">${app.formatCurrency(promo.value)}</span>`;
+                listHtml += `
+                <div class="flex items-center justify-between py-3 border-b border-gray-50">
+                    <div>
+                        <span class="font-semibold text-gray-800 text-sm">${promo.name}</span>
+                        <span class="ml-2">${badge}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="promoController.showEditForm('${promo.id}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-500 active:bg-blue-100">
+                            <i class="ph-bold ph-pencil-simple text-sm"></i>
+                        </button>
+                        <button onclick="promoController.deletePromo('${promo.id}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 active:bg-red-100">
+                            <i class="ph-bold ph-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        const html = `
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-lg font-bold text-gray-800">Template Promo</h3>
+                    <button onclick="app.closeModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-600"><i class="ph-bold ph-x"></i></button>
+                </div>
+                <div class="mb-4">${listHtml}</div>
+                <button onclick="promoController.showAddForm()"
+                    class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md active:bg-blue-700 flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-plus"></i> Tambah Template Promo
+                </button>
+            </div>`;
+        app.showModal(html);
+    },
+
+    refreshPromoManager() {
+        app.closeModal();
+        setTimeout(() => this.openPromoManager(), 50);
+    },
+
+    _buildForm(promo = null) {
+        const isEdit = !!promo;
+        const type = promo?.type || 'percentage';
+        return `
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-lg font-bold text-gray-800">${isEdit ? 'Edit' : 'Tambah'} Template Promo</h3>
+                    <button onclick="app.closeModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-600"><i class="ph-bold ph-x"></i></button>
+                </div>
+
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Promo</label>
+                <input id="promoNameInput" type="text" value="${promo?.name || ''}" placeholder="cth: Diskon Weekend" maxlength="40"
+                    class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm mb-4">
+
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Diskon</label>
+                <div class="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl">
+                    <button onclick="promoController._toggleType('percentage')" id="promoBtnPerc"
+                        class="flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${type === 'percentage' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}">Persen (%)</button>
+                    <button onclick="promoController._toggleType('fixed')" id="promoBtnFix"
+                        class="flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${type === 'fixed' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}">Nominal (Rp)</button>
+                </div>
+
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nilai Diskon</label>
+                <div class="relative mb-6">
+                    <span id="promoSign" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">${type === 'fixed' ? 'Rp' : '%'}</span>
+                    <input type="number" id="promoValueInput" value="${promo?.value || ''}" min="0" placeholder="0"
+                        class="w-full pl-10 p-4 font-bold text-xl border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <button onclick="promoController.savePromo('${promo?.id || ''}')"
+                    class="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl shadow-md active:bg-blue-700">
+                    ${isEdit ? 'Simpan Perubahan' : 'Simpan Template'}
+                </button>
+            </div>`;
+    },
+
+    _toggleType(type) {
+        document.getElementById('promoBtnPerc').className = `flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${type === 'percentage' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`;
+        document.getElementById('promoBtnFix').className = `flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${type === 'fixed' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`;
+        document.getElementById('promoSign').textContent = type === 'fixed' ? 'Rp' : '%';
+        document.getElementById('promoBtnPerc').dataset.selected = type === 'percentage' ? '1' : '';
+        document.getElementById('promoBtnFix').dataset.selected = type === 'fixed' ? '1' : '';
+    },
+
+    showAddForm() {
+        app.showModal(this._buildForm());
+        setTimeout(() => document.getElementById('promoNameInput')?.focus(), 100);
+    },
+
+    showEditForm(id) {
+        const promos = DB.get(DB.KEYS.PROMOS) || [];
+        const promo = promos.find(p => p.id === id);
+        if (!promo) return;
+        app.showModal(this._buildForm(promo));
+        setTimeout(() => document.getElementById('promoNameInput')?.focus(), 100);
+    },
+
+    savePromo(id) {
+        const name = document.getElementById('promoNameInput').value.trim();
+        const valueStr = document.getElementById('promoValueInput').value;
+        const value = parseFloat(valueStr);
+        // Determine active type from button state
+        const fixBtn = document.getElementById('promoBtnFix');
+        const type = fixBtn && fixBtn.className.includes('text-blue-600') ? 'fixed' : 'percentage';
+
+        if (!name) return alert('Nama promo wajib diisi.');
+        if (isNaN(value) || value <= 0) return alert('Nilai diskon wajib diisi.');
+
+        const promos = DB.get(DB.KEYS.PROMOS) || [];
+        if (id) {
+            const idx = promos.findIndex(p => p.id === id);
+            if (idx !== -1) { promos[idx] = { ...promos[idx], name, type, value }; }
+        } else {
+            promos.push({ id: app.generateId(), name, type, value });
+        }
+        DB.save(DB.KEYS.PROMOS, promos);
+        this.refreshPromoManager();
+    },
+
+    deletePromo(id) {
+        const promos = DB.get(DB.KEYS.PROMOS) || [];
+        const promo = promos.find(p => p.id === id);
+        if (!promo) return;
+        if (!confirm(`Hapus template "${promo.name}"?`)) return;
+        DB.save(DB.KEYS.PROMOS, promos.filter(p => p.id !== id));
+        this.refreshPromoManager();
+    },
+
+    // Called directly from cart tag button
+    showPromoPicker() {
+        const promos = DB.get(DB.KEYS.PROMOS) || [];
+        const hasDiscount = cashierController.discountValue > 0;
+
+        let listHtml = '';
+        if (promos.length === 0) {
+            listHtml = `
+            <div class="py-8 text-center text-gray-400">
+                <i class="ph ph-lightning text-3xl mb-2 block"></i>
+                <p class="text-sm font-medium">Belum ada template promo</p>
+                <p class="text-xs mt-1">Buat di Pengaturan → Template Promo / Diskon</p>
+            </div>`;
+        } else {
+            promos.forEach(promo => {
+                const badge = promo.type === 'percentage'
+                    ? `<span class="font-bold text-blue-600 text-sm">${promo.value}%</span>`
+                    : `<span class="font-bold text-green-600 text-sm">${app.formatCurrency(promo.value)}</span>`;
+                const isActive = hasDiscount
+                    && cashierController.discountType === promo.type
+                    && cashierController.discountValue === promo.value;
+                listHtml += `
+                <button onclick="promoController.applyPromoTemplate('${promo.id}')"
+                    class="w-full flex items-center justify-between px-4 py-3.5 border-b border-gray-50 active:bg-blue-50 transition-colors ${isActive ? 'bg-blue-50' : ''}">
+                    <div class="flex items-center gap-2">
+                        ${isActive ? '<i class="ph-bold ph-check-circle text-blue-500"></i>' : '<i class="ph ph-lightning text-yellow-500"></i>'}
+                        <span class="font-semibold text-gray-800 text-sm">${promo.name}</span>
+                    </div>
+                    ${badge}
+                </button>`;
+            });
+        }
+
+        const removeBtn = hasDiscount
+            ? `<button onclick="promoController.removeDiscount()" class="w-full mt-3 py-3 text-red-500 font-medium active:bg-red-50 rounded-xl text-sm">Hapus Diskon Aktif</button>`
+            : '';
+
+        const html = `
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">Promo / Diskon</h3>
+                    <button onclick="app.closeModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-600"><i class="ph-bold ph-x"></i></button>
+                </div>
+                <div class="bg-gray-50 rounded-2xl overflow-hidden">${listHtml}</div>
+                ${removeBtn}
+            </div>`;
+        app.showModal(html);
+    },
+
+    removeDiscount() {
+        cashierController.discountValue = 0;
+        cashierController.discountType = 'percentage';
+        app.closeModal();
+        cashierController.updateCartUI();
+    },
+
+
+    applyPromoTemplate(id) {
+        const promos = DB.get(DB.KEYS.PROMOS) || [];
+        const promo = promos.find(p => p.id === id);
+        if (!promo) return;
+        cashierController.discountType = promo.type;
+        cashierController.discountValue = promo.value;
+        app.closeModal();
+        cashierController.updateCartUI();
+    }
+};
+
 // Reports Controller
 const reportsController = {
+    currentFilter: 'today', // today, month, year
+
     init() {
+        this.renderStats();
+    },
+
+    setFilter(filter) {
+        this.currentFilter = filter;
+
+        // Update button styles
+        const btns = ['today', 'month', 'year'];
+        btns.forEach(b => {
+            const btnEl = document.getElementById('btnFilter' + b.charAt(0).toUpperCase() + b.slice(1));
+            if (btnEl) {
+                if (b === filter) {
+                    btnEl.className = 'flex-1 py-1.5 rounded-lg text-sm font-semibold transition-colors bg-blue-50 text-blue-600';
+                } else {
+                    btnEl.className = 'flex-1 py-1.5 rounded-lg text-sm font-semibold transition-colors text-gray-500 hover:bg-gray-50';
+                }
+            }
+        });
+
+        // Update Labels
+        let labelText = 'Hari Ini';
+        if (filter === 'month') labelText = 'Bulan Ini';
+        if (filter === 'year') labelText = 'Tahun Ini';
+
+        const lOmzet = document.getElementById('reportOmzetLabel');
+        const lPay = document.getElementById('reportPaymentLabel');
+        const lTop = document.getElementById('reportTopLabel');
+
+        if (lOmzet) lOmzet.textContent = 'Omzet ' + labelText;
+        if (lPay) lPay.textContent = 'Metode Pembayaran (' + labelText + ')';
+        if (lTop) lTop.textContent = 'Top 5 Produk (' + labelText + ')';
 
         this.renderStats();
     },
@@ -776,30 +1039,47 @@ const reportsController = {
     renderStats() {
         const transactions = DB.get(DB.KEYS.TRANSACTIONS) || [];
 
-        // Filter today's transactions
-        const today = new Date();
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        // Determine start time based on filter
+        const now = new Date();
+        let startTime = 0;
 
-        const todayTxs = transactions.filter(t => {
-            return new Date(t.createdAt).getTime() >= startOfDay && t.status !== 'voided'; // exclude voided
+        if (this.currentFilter === 'today') {
+            startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        } else if (this.currentFilter === 'month') {
+            startTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        } else if (this.currentFilter === 'year') {
+            startTime = new Date(now.getFullYear(), 0, 1).getTime();
+        }
+
+        const filteredTxs = transactions.filter(t => {
+            return new Date(t.createdAt).getTime() >= startTime && t.status !== 'voided';
         });
 
         // Calculate Revenue and Count
-        const revenue = todayTxs.reduce((sum, t) => sum + t.totals.total, 0);
-        const count = todayTxs.length;
+        const revenue = filteredTxs.reduce((sum, t) => sum + t.totals.total, 0);
+        const count = filteredTxs.length;
+
+        // Calculate total modal (cost) and profit from item snapshots
+        let totalCost = 0;
+        filteredTxs.forEach(t => {
+            t.items.forEach(item => {
+                totalCost += (item.costPrice || 0) * item.qty;
+            });
+        });
+        const profit = revenue - totalCost;
 
         // Breakdown Payment Method
         let cashTotal = 0;
         let nonCashTotal = 0;
 
-        todayTxs.forEach(t => {
+        filteredTxs.forEach(t => {
             if (t.payment.method === 'cash') cashTotal += t.totals.total;
             else nonCashTotal += t.totals.total;
         });
 
-        // Top 5 Products today
+        // Top 5 Products
         const productCounts = {};
-        todayTxs.forEach(t => {
+        filteredTxs.forEach(t => {
             t.items.forEach(item => {
                 if (!productCounts[item.productId]) {
                     productCounts[item.productId] = { name: item.name, qty: 0, revenue: 0 };
@@ -815,19 +1095,26 @@ const reportsController = {
 
         // Update DOM
         const elRev = document.getElementById('reportRevenue');
+        const elProfit = document.getElementById('reportProfit');
         const elCount = document.getElementById('reportCount');
+        const elCost = document.getElementById('reportCost');
         const elCash = document.getElementById('reportCash');
         const elNonCash = document.getElementById('reportNonCash');
         const elTopProds = document.getElementById('reportTopProducts');
 
         if (elRev) elRev.textContent = app.formatCurrency(revenue);
+        if (elProfit) elProfit.textContent = app.formatCurrency(profit);
         if (elCount) elCount.textContent = count;
+        if (elCost) elCost.textContent = app.formatCurrency(totalCost);
         if (elCash) elCash.textContent = app.formatCurrency(cashTotal);
         if (elNonCash) elNonCash.textContent = app.formatCurrency(nonCashTotal);
 
         if (elTopProds) {
             if (topProducts.length === 0) {
-                elTopProds.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">Belum ada data penjualan hari ini.</p>`;
+                let emptyText = 'Belum ada data penjualan hari ini.';
+                if (this.currentFilter === 'month') emptyText = 'Belum ada data penjualan bulan ini.';
+                if (this.currentFilter === 'year') emptyText = 'Belum ada data penjualan tahun ini.';
+                elTopProds.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">${emptyText}</p>`;
             } else {
                 let html = '';
                 topProducts.forEach((p, idx) => {
@@ -995,7 +1282,7 @@ const cashierController = {
             : allProducts.filter(p => p.categoryId === this.activeCategory);
 
         if (filtered.length === 0) {
-            container.innerHTML = `<div class="col-span-3 text-center py-10 text-gray-400">Tidak ada produk di kategori ini.</div>`;
+            container.innerHTML = `<div class="text-center py-10 text-gray-400">Tidak ada produk di kategori ini.</div>`;
             return;
         }
         container.innerHTML = this._buildProductCards(filtered);
@@ -1003,15 +1290,14 @@ const cashierController = {
 
     _buildProductCards(products) {
         return products.map(p => {
-            const imgHtml = p.image
-                ? `<div class="w-full h-24 bg-cover bg-center rounded-t-xl" style="background-image: url('${p.image}')"></div>`
-                : '';
             return `
-            <div onclick="cashierController.addToCart('${p.id}')" class="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-100 overflow-hidden active:scale-95 transition-transform flex flex-col cursor-pointer">
-                ${imgHtml}
-                <div class="p-2.5 flex-1 flex flex-col justify-between">
-                    <h3 class="font-semibold text-gray-800 text-xs leading-tight mb-1 line-clamp-2">${p.name}</h3>
-                    <p class="text-blue-600 font-bold text-xs">${app.formatCurrency(p.price)}</p>
+            <div onclick="cashierController.addToCart('${p.id}')" class="bg-white flex items-center gap-3 px-4 py-3.5 active:bg-blue-50 transition-colors cursor-pointer">
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-gray-800 text-sm leading-snug">${p.name}</h3>
+                    <p class="text-blue-600 font-bold text-sm mt-0.5">${app.formatCurrency(p.price)}</p>
+                </div>
+                <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <i class="ph-bold ph-plus text-white text-base"></i>
                 </div>
             </div>`;
         }).join('');
@@ -1037,6 +1323,7 @@ const cashierController = {
                 productId: product.id,
                 name: product.name,
                 price: product.price,
+                costPrice: product.costPrice || 0,
                 qty: 1,
                 subtotal: product.price,
                 note: ''
@@ -1222,7 +1509,8 @@ const cashierController = {
                 </div>
                 
                 <button onclick="cashierController.applyDiscount()" class="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl shadow-md active:bg-blue-700">Terapkan Diskon</button>
-                ${this.discountValue > 0 ? `<button onclick="cashierController.removeDiscount()" class="w-full py-3 mt-2 text-red-500 font-medium active:bg-red-50 rounded-xl">Hapus Diskon</button>` : ''}
+                <button onclick="promoController.showPromoPicker()" class="w-full py-3 mt-2 bg-gray-100 text-gray-700 font-semibold rounded-xl active:bg-gray-200 flex items-center justify-center gap-2"><i class="ph-fill ph-lightning"></i> Pilih dari Template Promo</button>
+                ${this.discountValue > 0 ? `<button onclick="cashierController.removeDiscount()" class="w-full py-3 mt-1 text-red-500 font-medium active:bg-red-50 rounded-xl">Hapus Diskon</button>` : ''}
             </div>
         `;
         app.showModal(html);
@@ -1528,12 +1816,19 @@ const cashierController = {
             ? `<div class="flex-1 py-3.5 text-center bg-red-50 text-red-400 font-bold rounded-xl text-sm">TRANSAKSI VOID</div>`
             : `<button onclick="cashierController.voidTransaction('${tx.id}')" class="flex-1 py-3.5 bg-red-500 text-white font-bold rounded-xl shadow-md shadow-red-500/20 active:bg-red-600 flex justify-center items-center gap-2"><i class="ph-bold ph-x-circle"></i> Void / Refund</button>`;
 
+        const closeBtnHtml = `<button onclick="app.closeModal()" class="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 active:bg-gray-200 shrink-0"><i class="ph-bold ph-x text-lg"></i></button>`;
+
         const btnRowHtml = isVoided
-            ? `<div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex gap-3 shrink-0 absolute bottom-0 w-full left-0 z-50">${voidBtnHtml}</div>`
+            ? `<div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex gap-3 shrink-0 absolute bottom-0 w-full left-0 z-50">
+                    ${closeBtnHtml}
+                    ${voidBtnHtml}
+               </div>`
             : `<div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex gap-3 shrink-0 absolute bottom-0 w-full left-0 z-50">
+                    ${closeBtnHtml}
                     <button onclick="cashierController.shareReceipt()" class="flex-1 py-3.5 bg-blue-50 text-blue-600 font-bold rounded-xl active:bg-blue-100 flex justify-center items-center gap-2"><i class="ph-bold ph-share-network"></i> Share</button>
                     ${voidBtnHtml}
                 </div>`;
+
 
         const container = document.getElementById('modalContainer');
         const content = document.getElementById('modalContent');
