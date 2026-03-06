@@ -1779,59 +1779,68 @@ const cashierController = {
                 
                 <!-- Scrollable Content -->
                 <div class="flex-1 overflow-y-auto p-4 flex flex-col items-center pb-8">
-                    <!-- Receipt Paper -->
-                    <div id="receiptPaper" class="bg-white p-6 shadow-sm w-full max-w-sm rounded-[5px] relative overflow-hidden mb-6" style="font-family: monospace;">
-                        <div class="text-center mb-6">
-                            <h2 class="font-bold text-xl uppercase mb-1">${State.settings?.storeName || 'Toko'}</h2>
-                            <p class="text-[10px] text-gray-500">${app.formatDate(tx.createdAt)}</p>
-                            <p class="text-[10px] text-gray-500 border-b border-dashed border-gray-300 pb-3 mb-3">No: ${tx.receiptNo}</p>
-                            ${isVoided ? '<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 text-red-500/20 font-black text-6xl border-8 border-red-500/20 p-2 rounded-xl pointer-events-none">VOID</div>' : ''}
+                    <!-- Receipt Paper optimized for 58mm Bluetooth Printer (~32 chars width) -->
+                    <div id="receiptPaper" class="bg-white p-4 text-black w-full max-w-[300px] relative overflow-hidden mb-6" style="font-family: monospace; font-size: 12px; line-height: 1.2;">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2 class="font-bold text-lg uppercase mb-1 leading-tight">${State.settings?.storeName || 'Toko'}</h2>
+                            <p class="text-[10px] mb-1">${app.formatDate(tx.createdAt)}</p>
+                            <p class="text-[10px] border-b border-black border-dotted pb-2 mb-2">No: ${tx.receiptNo}</p>
+                            ${isVoided ? '<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 text-black font-black text-4xl border-4 border-black p-1 rounded z-10">VOID</div>' : ''}
                         </div>
                         
-                        <div class="border-b border-dashed border-gray-300 pb-3 mb-3">
-                            ${itemsHtml}
+                        <!-- Items -->
+                        <div class="border-b border-black border-dotted pb-2 mb-2">
+                            ${tx.items.map(item => `
+                                <div class="flex justify-between items-start mb-1">
+                                    <div class="pr-2 w-3/4">
+                                        <div class="font-bold whitespace-nowrap overflow-hidden text-ellipsis">${item.name}</div>
+                                        <div class="text-[10px]">${item.qty} x ${app.formatCurrency(item.price)}</div>
+                                    </div>
+                                    <div class="font-bold text-right pl-1 w-1/4">${app.formatCurrency(item.subtotal)}</div>
+                                </div>
+                            `).join('')}
                         </div>
                         
-                        <div class="border-b border-dashed border-gray-300 pb-3 mb-3 space-y-1 text-sm">
-                            <div class="flex justify-between text-gray-500">
+                        <!-- Totals -->
+                        <div class="border-b border-black border-dotted pb-2 mb-2 space-y-1 text-[11px]">
+                            <div class="flex justify-between">
                                 <span>Subtotal</span>
                                 <span>${app.formatCurrency(tx.totals.subtotal)}</span>
                             </div>
                             ${tx.discount.amount > 0 ? `
-                            <div class="flex justify-between text-gray-500">
+                            <div class="flex justify-between">
                                 <span>Diskon</span>
                                 <span>-${app.formatCurrency(tx.discount.amount)}</span>
                             </div>` : ''}
                             ${tx.tax.amount > 0 ? `
-                            <div class="flex justify-between text-gray-500">
-                                <span>Pajak PPN</span>
+                            <div class="flex justify-between">
+                                <span>PPN</span>
                                 <span>${app.formatCurrency(tx.tax.amount)}</span>
                             </div>` : ''}
                         </div>
                         
-                        <div class="flex justify-between font-bold text-lg mb-4">
+                        <div class="flex justify-between font-extrabold text-sm mb-3">
                             <span>TOTAL</span>
                             <span>${app.formatCurrency(tx.totals.total)}</span>
                         </div>
                         
-                        <div class="space-y-1 text-sm pt-2">
-                            <div class="flex justify-between text-gray-500">
-                                <span>Tunai / Lunas</span>
+                        <!-- Payment -->
+                        <div class="space-y-1 text-[11px] pt-1">
+                            <div class="flex justify-between">
+                                <span>Tunai/Lunas</span>
                                 <span>${app.formatCurrency(tx.payment.paidAmount)}</span>
                             </div>
-                            <div class="flex justify-between font-semibold text-gray-800 pt-1">
+                            <div class="flex justify-between font-bold pt-1">
                                 <span>Kembali</span>
                                 <span>${app.formatCurrency(tx.payment.change)}</span>
                             </div>
                         </div>
                         
-                        <div class="text-center mt-10 pt-4 border-t border-dashed border-gray-300">
-                            <p class="text-xs text-gray-500 font-bold uppercase">Terima Kasih</p>
+                        <!-- Footer -->
+                        <div class="text-center mt-6 pt-3 border-t border-black border-dotted">
+                            <p class="text-[10px] font-bold uppercase">Terima Kasih</p>
                         </div>
-                        
-                        <!-- Top/Bottom decorations -->
-                        <div class="absolute top-0 left-0 w-full h-2" style="background-image: radial-gradient(circle at 5px 0, transparent 4px, white 5px); background-size: 10px 10px;"></div>
-                        <div class="absolute bottom-0 left-0 w-full h-2" style="background-image: radial-gradient(circle at 5px 10px, transparent 4px, white 5px); background-size: 10px 10px; transform: rotate(180deg)"></div>
                     </div>
                 </div>
                 
