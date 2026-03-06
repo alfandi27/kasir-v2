@@ -1755,16 +1755,15 @@ const cashierController = {
         const buildUrl = (path, withMessage = false) => {
             let url = cfg.baseUrl + path;
             if (withMessage && cfg.saveSuccessMessage) {
-                // Check if url already has params
                 url += (url.includes('?') ? '&' : '?') + 'pesan=' + cfg.saveSuccessMessage;
             }
             return url;
         };
 
-        // Buttons using BukaOlshop Print API from config
-        const btnPrint = `<button onclick="window.location.href='${buildUrl(cfg.printUrl)}'" class="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-xl active:bg-blue-100 gap-1"><i class="ph-bold ph-printer text-xl"></i><span class="text-xs font-bold">Cetak</span></button>`;
-        const btnShare = `<button onclick="window.location.href='${buildUrl(cfg.shareUrl)}'" class="flex flex-col items-center justify-center p-3 bg-green-50 text-green-600 rounded-xl active:bg-green-100 gap-1"><i class="ph-bold ph-share-network text-xl"></i><span class="text-xs font-bold">Bagikan</span></button>`;
-        const btnDownload = `<button onclick="window.location.href='${buildUrl(cfg.saveUrl, true)}'" class="flex flex-col items-center justify-center p-3 bg-purple-50 text-purple-600 rounded-xl active:bg-purple-100 gap-1"><i class="ph-bold ph-download-simple text-xl"></i><span class="text-xs font-bold">Unduh</span></button>`;
+        // Buttons using BukaOlshop Print API from config + Print Mode Wrapper
+        const btnPrint = `<button onclick="cashierController.triggerBukaOlshopPrint('${buildUrl(cfg.printUrl)}')" class="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-xl active:bg-blue-100 gap-1"><i class="ph-bold ph-printer text-xl"></i><span class="text-xs font-bold">Cetak</span></button>`;
+        const btnShare = `<button onclick="cashierController.triggerBukaOlshopPrint('${buildUrl(cfg.shareUrl)}')" class="flex flex-col items-center justify-center p-3 bg-green-50 text-green-600 rounded-xl active:bg-green-100 gap-1"><i class="ph-bold ph-share-network text-xl"></i><span class="text-xs font-bold">Bagikan</span></button>`;
+        const btnDownload = `<button onclick="cashierController.triggerBukaOlshopPrint('${buildUrl(cfg.saveUrl, true)}')" class="flex flex-col items-center justify-center p-3 bg-purple-50 text-purple-600 rounded-xl active:bg-purple-100 gap-1"><i class="ph-bold ph-download-simple text-xl"></i><span class="text-xs font-bold">Unduh</span></button>`;
         
         const btnVoid = isVoided
             ? `<div class="flex flex-col items-center justify-center p-3 bg-gray-100 text-gray-500 rounded-xl gap-1 col-span-1"><i class="ph-bold ph-prohibit text-xl"></i><span class="text-xs font-bold uppercase">VOIDED</span></div>`
@@ -1863,6 +1862,22 @@ const cashierController = {
         const modal = document.getElementById('fullReceiptModal');
         if (modal) modal.remove();
         document.body.style.overflow = '';
+    },
+
+    triggerBukaOlshopPrint(url) {
+        // 1. Activate Clean Print Mode (Hides UI, centers receipt)
+        document.body.classList.add('print-mode');
+        
+        // 2. Wait for UI to hide, then trigger BukaOlshop screen capture
+        setTimeout(() => {
+            window.location.href = url;
+            
+            // 3. Restore UI after 3 seconds (assuming APK has finished capturing)
+            setTimeout(() => {
+                document.body.classList.remove('print-mode');
+            }, 3000);
+            
+        }, 500);
     },
 
     voidTransaction(id) {
