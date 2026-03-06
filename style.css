@@ -75,6 +75,55 @@ html, body {
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* =========================================
+   BUKAOLSHOP PRINT MODE FIX
+   This mode is activated briefly to hide all UI
+   elements right before BukaOlshop "screenshots" the page
+   ========================================= */
+body.print-mode * {
+    visibility: hidden;
+}
+
+body.print-mode {
+    background: #fff !important;
+}
+
+/* Only make the receipt visible */
+body.print-mode #fullReceiptModal,
+body.print-mode #receiptPaper,
+body.print-mode #receiptPaper * {
+    visibility: visible;
+}
+
+/* Position paper at the very top perfectly for printing */
+body.print-mode #receiptPaper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    background: #fff;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Hide the decorations (zig-zags) in print mode if needed, or keep them. We hide them to save ink/bytes. */
+body.print-mode #receiptPaper > .absolute {
+    display: none !important;
+}
+
+/* Hide header and buttons inside the modal when printing */
+body.print-mode #fullReceiptModal > div:first-child,
+body.print-mode #fullReceiptModal > div:last-child {
+    display: none !important;
+}
+
+/* Strip modal background */
+body.print-mode #fullReceiptModal {
+    background: #fff !important;
+}
 /* Active Navigation Item styling */
 .nav-btn.active {
     color: var(--p-600);
