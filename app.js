@@ -1741,15 +1741,52 @@ const cashierController = {
             `;
         });
 
+        const isVoided = tx.status === 'voided';
+        
+        // Load config from HTML
+        const cfg = window.BukaOlshopConfig || {
+            baseUrl: "",
+            printUrl: "/print_halaman?aksi=print",
+            shareUrl: "/print_halaman?aksi=share",
+            saveUrl: "/print_halaman?aksi=save",
+            saveSuccessMessage: "Struk%20Berhasil%20Disimpan"
+        };
+        
+        const buildUrl = (path, withMessage = false) => {
+            let url = cfg.baseUrl + path;
+            if (withMessage && cfg.saveSuccessMessage) {
+                // Check if url already has params
+                url += (url.includes('?') ? '&' : '?') + 'pesan=' + cfg.saveSuccessMessage;
+            }
+            return url;
+        };
+
+        // Buttons using BukaOlshop Print API from config
+        const btnPrint = `<button onclick="window.location.href='${buildUrl(cfg.printUrl)}'" class="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-xl active:bg-blue-100 gap-1"><i class="ph-bold ph-printer text-xl"></i><span class="text-xs font-bold">Cetak</span></button>`;
+        const btnShare = `<button onclick="window.location.href='${buildUrl(cfg.shareUrl)}'" class="flex flex-col items-center justify-center p-3 bg-green-50 text-green-600 rounded-xl active:bg-green-100 gap-1"><i class="ph-bold ph-share-network text-xl"></i><span class="text-xs font-bold">Bagikan</span></button>`;
+        const btnDownload = `<button onclick="window.location.href='${buildUrl(cfg.saveUrl, true)}'" class="flex flex-col items-center justify-center p-3 bg-purple-50 text-purple-600 rounded-xl active:bg-purple-100 gap-1"><i class="ph-bold ph-download-simple text-xl"></i><span class="text-xs font-bold">Unduh</span></button>`;
+        
+        const btnVoid = isVoided
+            ? `<div class="flex flex-col items-center justify-center p-3 bg-gray-100 text-gray-500 rounded-xl gap-1 col-span-1"><i class="ph-bold ph-prohibit text-xl"></i><span class="text-xs font-bold uppercase">VOIDED</span></div>`
+            : `<button onclick="cashierController.voidTransaction('${tx.id}')" class="flex flex-col items-center justify-center p-3 bg-red-50 text-red-600 rounded-xl active:bg-red-100 gap-1"><i class="ph-bold ph-x-circle text-xl"></i><span class="text-xs font-bold">Void</span></button>`;
+
         const html = `
-            <div class="bg-gray-100 h-full w-full min-h-[90vh] flex flex-col">
-                <div class="flex-1 overflow-y-auto p-4 flex justify-center pb-24">
+            <div class="bg-gray-100 h-full w-full flex flex-col fixed top-0 left-0 z-[100] animate-slide-up">
+                <!-- Header -->
+                <div class="bg-white px-4 py-3 border-b border-gray-200 flex justify-between items-center shrink-0">
+                    <h3 class="font-bold text-gray-800 text-lg">Struk Transaksi</h3>
+                    <button onclick="cashierController.closeReceiptModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 active:bg-gray-200"><i class="ph-bold ph-x"></i></button>
+                </div>
+                
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col items-center pb-8">
                     <!-- Receipt Paper -->
-                    <div id="receiptPaper" class="bg-white p-6 shadow-sm w-full max-w-sm rounded-[5px] relative overflow-hidden" style="font-family: monospace;">
+                    <div id="receiptPaper" class="bg-white p-6 shadow-sm w-full max-w-sm rounded-[5px] relative overflow-hidden mb-6" style="font-family: monospace;">
                         <div class="text-center mb-6">
                             <h2 class="font-bold text-xl uppercase mb-1">${State.settings?.storeName || 'Toko'}</h2>
                             <p class="text-[10px] text-gray-500">${app.formatDate(tx.createdAt)}</p>
                             <p class="text-[10px] text-gray-500 border-b border-dashed border-gray-300 pb-3 mb-3">No: ${tx.receiptNo}</p>
+                            ${isVoided ? '<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 text-red-500/20 font-black text-6xl border-8 border-red-500/20 p-2 rounded-xl pointer-events-none">VOID</div>' : ''}
                         </div>
                         
                         <div class="border-b border-dashed border-gray-300 pb-3 mb-3">
@@ -1799,62 +1836,33 @@ const cashierController = {
                     </div>
                 </div>
                 
-                <div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex gap-3 shrink-0 absolute bottom-0 w-full left-0 z-50">
-                    <button onclick="cashierController.shareReceipt()" class="flex-1 py-3.5 bg-blue-50 text-blue-600 font-bold rounded-xl active:bg-blue-100 flex justify-center items-center gap-2">
-                        <i class="ph-bold ph-share-network"></i> Share
-                    </button>
-                    <button onclick="cashierController.finishTransaction()" class="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-md shadow-blue-600/20 active:bg-blue-700 flex justify-center items-center gap-2">
-                        <i class="ph-bold ph-plus"></i> Transaksi Baru
-                    </button>
+                <!-- Bottom Action Grid -->
+                <div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] shrink-0 w-full z-50 rounded-t-2xl pb-safe">
+                    <div class="grid grid-cols-4 gap-3 max-w-sm mx-auto">
+                        ${btnPrint}
+                        ${btnShare}
+                        ${btnDownload}
+                        ${btnVoid}
+                    </div>
                 </div>
             </div>
         `;
 
-        // Custom Full Screen Modal without close button overlaying everything
-        const isVoided = tx.status === 'voided';
-        const voidBtnHtml = isVoided
-            ? `<div class="flex-1 py-3.5 text-center bg-red-50 text-red-400 font-bold rounded-xl text-sm">TRANSAKSI VOID</div>`
-            : `<button onclick="cashierController.voidTransaction('${tx.id}')" class="flex-1 py-3.5 bg-red-500 text-white font-bold rounded-xl shadow-md shadow-red-500/20 active:bg-red-600 flex justify-center items-center gap-2"><i class="ph-bold ph-x-circle"></i> Void / Refund</button>`;
+        const existing = document.getElementById('fullReceiptModal');
+        if (existing) existing.remove();
 
-        const closeBtnHtml = `<button onclick="app.closeModal()" class="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 active:bg-gray-200 shrink-0"><i class="ph-bold ph-x text-lg"></i></button>`;
+        const modal = document.createElement('div');
+        modal.id = 'fullReceiptModal';
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
 
-        const btnRowHtml = isVoided
-            ? `<div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex gap-3 shrink-0 absolute bottom-0 w-full left-0 z-50">
-                    ${closeBtnHtml}
-                    ${voidBtnHtml}
-               </div>`
-            : `<div class="bg-white p-4 border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] flex gap-3 shrink-0 absolute bottom-0 w-full left-0 z-50">
-                    ${closeBtnHtml}
-                    <button onclick="cashierController.shareReceipt()" class="flex-1 py-3.5 bg-blue-50 text-blue-600 font-bold rounded-xl active:bg-blue-100 flex justify-center items-center gap-2"><i class="ph-bold ph-share-network"></i> Share</button>
-                    ${voidBtnHtml}
-                </div>`;
-
-
-        const container = document.getElementById('modalContainer');
-        const content = document.getElementById('modalContent');
-        content.innerHTML = html;
-
-        // Replace the action buttons with void-aware ones
-        const bottomBar = content.querySelector('.bg-white.p-4.border-t');
-        if (bottomBar) {
-            bottomBar.outerHTML = btnRowHtml;
-        }
-
-        container.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     },
 
-    shareReceipt() {
-        // Fallback for native share
-        if (navigator.share) {
-            navigator.share({
-                title: 'Struk Belanja',
-                text: 'Terima kasih telah berbelanja!',
-                // You would realistically generate a text summary or image here.
-            }).catch(console.error);
-        } else {
-            alert('Fitur Share tidak didukung di browser ini. Gunakan fitur Print screenshot layar.');
-        }
+    closeReceiptModal() {
+        const modal = document.getElementById('fullReceiptModal');
+        if (modal) modal.remove();
+        document.body.style.overflow = '';
     },
 
     voidTransaction(id) {
