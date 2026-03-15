@@ -102,14 +102,28 @@ body.print-mode #fullReceiptModal > div > div:last-child {
 body.print-mode #fullReceiptModal #receiptPaper {
     box-shadow: none !important;
     margin: 0 auto !important;
-    max-width: 100% !important;
+}
+
+/* =========================================
+   THERMAL PRINTER MODE (58mm)
+   Applies strict monochrome, width, and fonts
+   ========================================= */
+body.thermal-mode #fullReceiptModal #receiptPaper {
+    max-width: 300px !important;
     width: 100% !important;
     border: none !important;
     border-radius: 0 !important;
+    font-family: monospace, Courier, "Courier New" !important;
+    color: #000 !important;
 }
 
-/* Hide receipt zig-zag decorations to save paper/space */
-body.print-mode #fullReceiptModal #receiptPaper > .absolute {
+body.thermal-mode #fullReceiptModal #receiptPaper * {
+    color: #000 !important;
+    border-color: #000 !important;
+}
+
+/* Hide receipt zig-zag decorations only in thermal to save paper/space */
+body.thermal-mode #fullReceiptModal #receiptPaper > .absolute {
     display: none !important;
 }
 /* Active Navigation Item styling */
