@@ -326,30 +326,14 @@ const reportsController = {
 
             const fileUrl = uploadJson.data.url;
 
-            // --- Trigger download via API with explicit Header ---
-            app.showToast('Mengunduh dari server...');
-            
-            const dlRes = await fetch(`https://upload-v2.vercel.app/api/download?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename)}`, {
-                headers: { 'x-api-key': 'fanfanstore' }
-            });
-
-            if (!dlRes.ok) {
-                const dlJson = await dlRes.json().catch(() => ({}));
-                throw new Error(dlJson.error || 'Server menolak unduhan file');
-            }
-
-            const dlBlob = await dlRes.blob();
-            const dlObjectUrl = URL.createObjectURL(dlBlob);
-
+            // --- Trigger download via direct link (no API key needed) ---
+            const downloadUrl = `https://upload-v2.vercel.app/api/download?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename)}`;
             const a = document.createElement('a');
-            a.href = dlObjectUrl;
+            a.href = downloadUrl;
             a.setAttribute('download', filename);
             document.body.appendChild(a);
             a.click();
             a.remove();
-            
-            // Clean up memory
-            setTimeout(() => URL.revokeObjectURL(dlObjectUrl), 5000);
 
             app.showToast('Laporan berhasil diunduh!');
         } catch (err) {
