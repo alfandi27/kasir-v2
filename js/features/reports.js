@@ -325,22 +325,58 @@ const reportsController = {
             }
 
             const fileUrl = uploadJson.data.url;
-
-            // --- Trigger download via direct link (no API key needed) ---
             const downloadUrl = `https://upload-v2.vercel.app/api/download?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename)}`;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.setAttribute('download', filename);
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
 
-            app.showToast('Laporan berhasil diunduh!');
+            // --- Show link in Modal instead of auto-download ---
+            app.closeModal(); // close any existing modal just in case
+            
+            const modalHtml = `
+                <div class="p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-lg font-bold text-gray-800">Laporan Siap Diunduh</h3>
+                        <button onclick="app.closeModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 active:bg-gray-200"><i class="ph-bold ph-x"></i></button>
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5 text-center">
+                        <i class="ph-fill ph-file-xls text-4xl text-green-600 mb-2"></i>
+                        <p class="font-semibold text-gray-800 text-sm mb-1 truncate">${filename}</p>
+                        <p class="text-xs text-gray-500">File laporan Anda sudah berhasil dibuat dan disimpan di server siap untuk diunduh.</p>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <div class="relative">
+                            <input type="text" id="reportLinkInput" value="${downloadUrl}" readonly class="w-full p-3 pr-12 text-xs bg-gray-100 border border-gray-200 rounded-xl text-gray-500 outline-none">
+                            <button onclick="reportsController.copyLink()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-blue-600 active:bg-blue-50 shadow-sm transition-all hover:scale-105">
+                                <i class="ph-bold ph-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <a href="${downloadUrl}&bukaolshop_open_browser=true" target="_blank" class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-[0_4px_12px_rgba(37,99,235,0.3)] active:bg-blue-700 mt-2 flex justify-center items-center gap-2 text-sm transition-all hover:-translate-y-0.5" onclick="app.closeModal()">
+                            <i class="ph-bold ph-download-simple text-lg"></i> Download Sekarang
+                        </a>
+                    </div>
+                </div>
+            `;
+            app.showModal(modalHtml);
+            app.showToast('Link laporan berhasil dibuat!');
+
         } catch (err) {
             console.error(err);
             alert('Gagal mengunduh laporan: ' + err.message);
         }
+    },
+
+    copyLink() {
+        const input = document.getElementById('reportLinkInput');
+        if (input) {
+            input.select();
+            input.setSelectionRange(0, 99999); // Untuk mobile
+            navigator.clipboard.writeText(input.value).then(() => {
+                app.showToast('Link berhasil disalin!');
+            }).catch(err => {
+                console.error('Gagal menyalin:', err);
+                app.showToast('Gagal menyalin link');
+            });
+        }
     }
 };
-
-// ... existing code ...
